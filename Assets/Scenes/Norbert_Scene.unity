@@ -387,7 +387,7 @@ Transform:
   m_GameObject: {fileID: 62618484}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.3150105, y: -9.47836, z: 8.327407}
+  m_LocalPosition: {x: 3.3150105, y: -8.478361, z: 8.327407}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -406,12 +406,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TrackerSettings:
-    BindingMode: 4
+    BindingMode: 1
     PositionDamping: {x: 1, y: 1, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -5.62}
+  FollowOffset: {x: 2, y: 1, z: -5.62}
 --- !u!1 &67112357
 GameObject:
   m_ObjectHideFlags: 0
@@ -1333,7 +1333,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.3150105, y: -9.47836, z: 8.327407}
+  m_LocalPosition: {x: 3.3150105, y: -8.478361, z: 8.327407}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2946,10 +2946,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2141259088822569341, guid: 26761a38190480b4abf6907d00612b7f, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2500250759065815707, guid: 26761a38190480b4abf6907d00612b7f, type: 3}
       propertyPath: healthBar
       value: 
       objectReference: {fileID: 413013560}
+    - target: {fileID: 2714566828933003958, guid: 26761a38190480b4abf6907d00612b7f, type: 3}
+      propertyPath: enemyLayers.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4610766153963630056, guid: 26761a38190480b4abf6907d00612b7f, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.5
