@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Movement : MonoBehaviour
 {
@@ -128,5 +129,10 @@ public class Movement : MonoBehaviour
     {
         yield return new WaitForSeconds(jumpCooldown);
         hasJumped = false;
+    }
+
+    public void BackToMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }
