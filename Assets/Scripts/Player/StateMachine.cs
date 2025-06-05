@@ -1,31 +1,24 @@
 using UnityEngine;
 
-public class StateMachine : MonoBehaviour
+public class StateMachine
 {
-    private IState currentState;
-    private InputHandler input;
+    public State CurrentState { get; private set; }
 
-    void Start()
+    public void Initialize(State startingState)
     {
-        SetState(new Idle()); // Start in idle state
+        CurrentState = startingState;
+        CurrentState.Enter();
     }
 
-    void Update()
+    public void SwitchState(State newState)
     {
-        input.Update();
-        currentState.Update();
-        currentState.FixedUpdate();
+        if (newState == CurrentState) return;
+
+        CurrentState?.Exit();
+        CurrentState = newState;
+        CurrentState.Enter();
     }
 
-    void FixedUpdate()
-    {
-        currentState.FixedUpdate();
-    }
-
-    public void SetState(IState newState)
-    {
-        currentState.Exit();
-        currentState = newState;
-        currentState.Enter();
-    }
+    public void Update() => CurrentState?.Update();
+    public void FixedUpdate() => CurrentState?.FixedUpdate();
 }
