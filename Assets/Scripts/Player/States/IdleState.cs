@@ -27,5 +27,10 @@ public class IdleState : State
         {
             stateMachine.SwitchState(player.FallState);
         }
+
+        if (player.Input.DashPressed && player.Abilities.CanUseDash(player.IsGrounded()))
+        {
+            stateMachine.SwitchState(player.DashState);
+        }
     }
 }

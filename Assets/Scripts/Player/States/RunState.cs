@@ -27,6 +27,11 @@ public class RunState : State
         {
             stateMachine.SwitchState(player.FallState);
         }
+
+        if (player.Input.DashPressed && player.Abilities.CanUseDash(player.IsGrounded()))
+        {
+            stateMachine.SwitchState(player.DashState);
+        }
     }
 
     public override void FixedUpdate()

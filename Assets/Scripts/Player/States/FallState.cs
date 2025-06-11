@@ -8,6 +8,7 @@ public class FallState : State
     {
         if (player.IsGrounded())
         {
+            player.Abilities.ResetAirDash();
             if (player.Input.MoveInput != Vector2.zero)
                 stateMachine.SwitchState(player.RunState);
             else
@@ -17,6 +18,11 @@ public class FallState : State
         if (player.Input.JumpPressed && player.CanUseDoubleJump())
         {
             stateMachine.SwitchState(player.JumpState, true);
+        }
+
+        if (player.Input.DashPressed && player.Abilities.CanUseDash(player.IsGrounded()))
+        {
+            stateMachine.SwitchState(player.DashState);
         }
     }
 
