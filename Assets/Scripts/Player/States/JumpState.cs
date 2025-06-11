@@ -4,23 +4,30 @@ public class JumpState : State
 {
     public JumpState(PlayerController player) : base(player) { }
 
-    private bool hasJumped;
-
     public override void Enter()
     {
-        player.Jump();
-        hasJumped = true;
+        if (player.IsJumpAllowed())
+        {
+            player.Jump();
+            player.ResetDoubleJump();
+        }
+        else if (player.CanUseDoubleJump())
+        {
+            player.UseDoubleJump();
+            player.Jump();
+        }
     }
 
     public override void Update()
     {
-        if (player.IsGrounded() && hasJumped)
+        if (player.Input.JumpPressed && player.CanUseDoubleJump())
         {
-            // Landed
-            if (player.Input.MoveInput != Vector2.zero)
-                stateMachine.SwitchState(player.RunState);
-            else
-                stateMachine.SwitchState(player.IdleState);
+            stateMachine.SwitchState(player.JumpState, true); // trigger double jump
+        }
+
+        if (player.IsFalling())
+        {
+            stateMachine.SwitchState(player.FallState);
         }
     }
 

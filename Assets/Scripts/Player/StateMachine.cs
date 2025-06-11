@@ -10,9 +10,9 @@ public class StateMachine
         CurrentState.Enter();
     }
 
-    public void SwitchState(State newState)
+    public void SwitchState(State newState, bool force = false)
     {
-        if (newState == CurrentState) return;
+        if (!force && newState == CurrentState) return;
 
         CurrentState?.Exit();
         CurrentState = newState;

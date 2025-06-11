@@ -7,6 +7,7 @@ public class IdleState : State
     public override void Enter()
     {
         player.Rigidbody.linearVelocity = new Vector3(0, player.Rigidbody.linearVelocity.y);
+        player.ResetDoubleJump();
     }
     public override void Update()
     {
@@ -15,9 +16,16 @@ public class IdleState : State
             stateMachine.SwitchState(player.RunState);
         }
 
-        if (player.Input.JumpPressed && player.Abilities.CanJump)
+        if (Time.time - player.lastJumpPressedTime <= player.jumpBufferTime &&
+            player.Abilities.CanJump &&
+            player.IsJumpAllowed())
         {
             stateMachine.SwitchState(player.JumpState);
+        }
+
+        if (player.IsFalling())
+        {
+            stateMachine.SwitchState(player.FallState);
         }
     }
 }

@@ -13,18 +13,30 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform groundCheck;
 
+    [Header("Jump")]
+    [SerializeField] private float coyoteTime = 0.2f;
+    private float lastGroundedTime;
+    private float lastJumpTime;
+    [SerializeField] private float jumpGroundLockoutTime = 0.1f;
+    [SerializeField] public float jumpBufferTime = 0.1f;
+    [HideInInspector] public float lastJumpPressedTime;
+    public bool HasDoubleJumped { get; private set; } = false;
+
     #region states
     public IdleState IdleState { get; private set; }
     public RunState RunState { get; private set; }
     public JumpState JumpState { get; private set; }
+    public FallState FallState { get; private set; }
+    public DashState DashState { get; private set; }
     #endregion
 
     #region flip variables
     [SerializeField] private float rotationSpeed = 20.0f;
-    private Vector3 rotationSpeedV;
-    private bool isFacingRight = true;
-    private Quaternion targetRotation = Quaternion.identity;
+    [HideInInspector] public bool isFacingRight = true;
+    [HideInInspector] public Quaternion targetRotation = Quaternion.identity;
     private bool rotate;
+    private bool rotationClose;
+
     #endregion
 
     public void Awake()
@@ -37,25 +49,39 @@ public class PlayerController : MonoBehaviour
         IdleState = new IdleState(this);
         RunState = new RunState(this);
         JumpState = new JumpState(this);
+        FallState = new FallState(this);
+        DashState = new DashState(this);
     }
 
     public void Start()
     {
         StateMachine.Initialize(IdleState);
-        rotationSpeedV = new Vector3(0, rotationSpeed, 0);
     }
 
     public void Update()
     {
         Debug.Log(StateMachine.CurrentState);
+        Debug.Log("hasDoubleJumped  " + HasDoubleJumped);
+        Debug.Log("grounded  " + IsGrounded());
+        //Debug.Log(IsGrounded());
         StateMachine.CurrentState.Update();
         Input.Update();
+
         if (!isFacingRight && Rigidbody.linearVelocity.x > 0f || isFacingRight && Rigidbody.linearVelocity.x < 0)
         {
-            //Debug.Log("flip_con");
             Flip();
         }
+
+        rotationClose = Mathf.Abs(transform.eulerAngles.y - targetRotation.eulerAngles.y) <= 1f;
+
+        UpdateGroundedTime();
+
+        if (Input.JumpPressed)
+        {
+            lastJumpPressedTime = Time.time;
+        }
     }
+
     public void FixedUpdate()
     {
         StateMachine.CurrentState.FixedUpdate();
@@ -63,47 +89,86 @@ public class PlayerController : MonoBehaviour
         if (rotate)
             Rotate();
     }
+
+    public bool IsFalling()
+    {
+        return !IsGrounded() && Rigidbody.linearVelocity.y < 0;
+    }
+
     public bool IsGrounded()
+    {
+        // groundcheck z buforem na sprawdzenie po skoku
+        if (Time.time < lastJumpTime + jumpGroundLockoutTime)
+            return false;
+
+        return IsActuallyGrounded();
+    }
+
+    public bool IsActuallyGrounded()
     {
         // Metoda OverlapSphere zwraca tablice colliderow, jesli znajdzie jakikolwiek należący do warstwy groundLayer,
         // to postać jest uziemiona.
-        return Physics.OverlapSphere(groundCheck.position, 0.3f, groundLayer).Length > 0;
+        return Physics.OverlapSphere(groundCheck.position, 0.1f, groundLayer).Length > 0;
+    }
+    public void UpdateGroundedTime()
+    {
+        if (IsActuallyGrounded())
+            lastGroundedTime = Time.time;
+    }
+
+    public bool IsJumpAllowed()
+    {
+        return Time.time <= lastGroundedTime + coyoteTime;
+    }
+
+    public void ResetDoubleJump()
+    {
+        HasDoubleJumped = false;
+    }
+
+    public void UseDoubleJump()
+    {
+        HasDoubleJumped = true;
+    }
+
+    public bool CanUseDoubleJump()
+    {
+        return Abilities.CanDoubleJump && !HasDoubleJumped;
     }
 
     public void Flip()
     {
-        //Debug.Log("flip");
-        targetRotation = isFacingRight ? Quaternion.AngleAxis(180f, transform.up) : Quaternion.AngleAxis(0f, transform.up);
+        targetRotation = isFacingRight ? Quaternion.AngleAxis(179f, transform.up) : Quaternion.AngleAxis(1f, transform.up);
         isFacingRight = !isFacingRight;
         rotate = true;
     }
 
     public void Rotate()
     {
-
-        //Debug.Log("rotate");
-        //Debug.Log("transformRotation: " + transform.rotation);
-        //Debug.Log("targetRotation: " + targetRotation);
-
-        if (Mathf.Abs(transform.eulerAngles.y - targetRotation.eulerAngles.y) <= 1f)
+        if (!isFacingRight)
         {
-            //Debug.Log("if");
-            transform.rotation = targetRotation;
-            rotate = false;
-        }
-        else if (!isFacingRight)
-        {
-            //Debug.Log("if else");
 
-            Quaternion deltaRotation = Quaternion.Euler(rotationSpeedV);
-            Rigidbody.MoveRotation(Rigidbody.rotation * deltaRotation);
+            if (rotationClose)
+            {
+                transform.rotation = Quaternion.Euler(transform.rotation.x, 180f, transform.rotation.z);
+                rotate = false;
+            }
+            else
+            {
+                Rigidbody.rotation = Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, rotationSpeed);
+            }
         }
         else
         {
-            //Debug.Log("else");
-
-            Quaternion deltaRotation = Quaternion.Euler(-rotationSpeedV);
-            Rigidbody.MoveRotation(Rigidbody.rotation * deltaRotation);
+            if (rotationClose)
+            {
+                transform.rotation = Quaternion.Euler(transform.rotation.x, 0f, transform.rotation.z);
+                rotate = false;
+            }
+            else
+            {
+                Rigidbody.rotation = Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, rotationSpeed);
+            }
         }
     }
 
@@ -116,6 +181,12 @@ public class PlayerController : MonoBehaviour
 
     public void Jump()
     {
+        lastJumpTime = Time.time;
         Rigidbody.linearVelocity = new Vector2(Rigidbody.linearVelocity.x, jumpForce);
+    }
+
+    public void SetVelocity(Vector2 velocity)
+    {
+        Rigidbody.linearVelocity = velocity;
     }
 }

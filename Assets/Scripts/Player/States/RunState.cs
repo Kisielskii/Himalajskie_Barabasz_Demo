@@ -4,6 +4,11 @@ public class RunState : State
 {
     public RunState(PlayerController player) : base(player) { }
 
+    public override void Enter()
+    {
+        player.ResetDoubleJump();
+    }
+
     public override void Update()
     {
         if (player.Input.MoveInput == Vector2.zero)
@@ -11,9 +16,16 @@ public class RunState : State
             stateMachine.SwitchState(player.IdleState);
         }
 
-        if (player.Input.JumpPressed && player.Abilities.CanJump)
+        if (Time.time - player.lastJumpPressedTime <= player.jumpBufferTime &&
+            player.Abilities.CanJump &&
+            player.IsJumpAllowed())
         {
             stateMachine.SwitchState(player.JumpState);
+        }
+
+        if (player.IsFalling())
+        {
+            stateMachine.SwitchState(player.FallState);
         }
     }
 
